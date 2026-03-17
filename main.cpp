@@ -3,13 +3,20 @@
 #include <ctime> // for measuring clock (CPU Time)
 #include<chrono> // for high-resolution clock. More accurate than <ctime> 
 #include <stdexcept> // for the throws & Exceptions 
+#include <algorithm> // for (copy function)
 using namespace std; 
 
-// Global Variables/Functions
+// Global Variables
 const int arrSize = 100000; 
 int randomArr[arrSize]; 
 int sortedArr[arrSize]; 
 int sortedBackwardsArr[arrSize]; 
+int tempArr[arrSize]; // for storing the array before sorting so that the original is not modified 
+chrono::high_resolution_clock::time_point start; // Global so that (stopTimer) can access it
+clock_t cStart, cEnd; // for CPU clock time measurement
+double clockTime; 
+double chronoTime; 
+
 
 // --------------------- Prototypes ---------------------
 // --------------------- Sorting Algorithms ---------------------
@@ -25,6 +32,11 @@ void quickSortV2(int arr[], int low, int high); // Modified Version
 void readFiles(int[], int[], int[]); 
 int binarySearch(int[], int, int, int); // insertionSortV2 helper function
 int partition(int[], int, int); // quickSoertV1 helper function
+void testAllAlgorithms(); // For analyzing the performance of all the algorithms in all cases
+void specificAlgorithm(); // In case specific algorithm is wanted
+void startChronoTimer(); 
+double stopChronoTimer(); 
+
 
 int main(){
     // Read the files first: 
@@ -34,6 +46,7 @@ int main(){
     catch (const ios_base::failure& e) {
         cout << "File error: " << e.what() << endl;
     }
+    entryMenu(); 
 
     return 0; 
 }
@@ -62,6 +75,16 @@ void readFiles(int randomArr[], int sortedArr[], int sortedBackwardsArr[]) {
     for (int i = 0; i < arrSize; i++)
         sortedBackwards >> sortedBackwardsArr[i];
     // Files will be closed automatically when the ifstream object goes out of scope.
+    cout <<"All the input files are read successfully"<<endl; 
+}
+
+
+void startChronoTimer() {
+    start = chrono::high_resolution_clock::now();
+}
+double stopChronoTimer() {
+    auto end = chrono::high_resolution_clock::now();
+    return chrono::duration<double>(end - start).count();
 }
 
 
@@ -115,6 +138,50 @@ void selectionSortV1(int arr[], const int size = arrSize){
         arr[last] = temp;
     } // end for
 } // end selectionSortV1
+
+
+void selectionSortV2(int arr[], const int size = arrSize) {
+    // Early termination
+    if (size <= 1) return;
+    // Checking if already sorted
+    bool is_sorted = true;
+    for (int i = 0; i < size - 1; i++) {
+        if (arr[i] > arr[i + 1]) {
+            is_sorted = false;
+            break;
+        }
+    }
+    if (is_sorted) return;
+    
+    //Bidirectional sorting
+    for (int i = 0; i < size / 2; i++) {
+        int min_idx = i;
+        int max_idx = i;
+        
+        //Single pass finds BOTH min and max
+        for (int j = i + 1; j < size - i; j++) {
+            if (arr[j] < arr[min_idx]) {
+                min_idx = j;
+            }
+            if (arr[j] > arr[max_idx]) {
+                max_idx = j;
+            }
+        }
+        //Conditional swap for minimum
+        if (min_idx != i) {
+            int temp = arr[i];
+            arr[i] = arr[min_idx];
+            arr[min_idx] = temp;
+        }
+        //Conditional swap
+        int back_pos = size - 1 - i;
+        if (arr[back_pos] != arr[max_idx]) {
+            int temp = arr[back_pos];
+            arr[back_pos] = arr[max_idx];
+            arr[max_idx] = temp;
+        }
+    }
+}  // end selectionSortV2
 
 
 void insertionSortV1(int arr[], const int size = arrSize){
@@ -222,4 +289,72 @@ void quickSortV1(int arr[], int low, int high) {
         quickSortV1(arr, low, cut);
         quickSortV1(arr, cut + 1, high);
     }
+}
+
+
+// Enrty Menu
+void entryMenu() {
+    int entryChoice; 
+    cout<<"Would you like to: \n"; 
+    cout <<"1. Test the performance of all the algorithms for all the cases at once" <<endl; 
+    cout <<"2. Choose a specific algorithm"<<endl; 
+    cin >> entryChoice; 
+    while (entryChoice != 1 && entryChoice != 2) {
+        cerr << "Invalid Choice!! Please try again: ";
+        cin >> entryChoice;
+    }
+    switch (entryChoice) {
+        case 1: 
+            testAllAlgorithms();
+            break;  
+        case 2: 
+            specificAlgorithm(); 
+            break; 
+    }
+}
+
+
+void testAllAlgorithms() {
+    // --------------------- Bubble Sort ---------------------
+    cout << "1. Original Bubble Sort: " << endl; 
+    cout << "\tRandom List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(randomArr, randomArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        bubbleSortV1(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart); 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime; 
+    } 
+    cout << "\tSorted List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedArr, sortedArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        bubbleSortV1(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart); 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime; 
+    } 
+    cout << "\tSorted Backwards List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedBackwardsArr, sortedBackwardsArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        bubbleSortV1(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart); 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime; 
+    } 
+
 }

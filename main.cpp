@@ -6,6 +6,7 @@
 #include <algorithm> // for (copy function)
 using namespace std; 
 
+
 // Global Variables
 const int arrSize = 100000; 
 int randomArr[arrSize]; 
@@ -16,6 +17,7 @@ chrono::high_resolution_clock::time_point start; // Global so that (stopTimer) c
 clock_t cStart, cEnd; // for CPU clock time measurement
 double clockTime; 
 double chronoTime; 
+int caseChoice; 
 
 
 // --------------------- Prototypes ---------------------
@@ -29,13 +31,49 @@ void insertionSortV2(int arr[], const int size = arrSize); // Modified Version
 void quickSortV1(int arr[], int low, int high); // Classic Version
 void quickSortV2(int arr[], int low, int high); // Modified Version
 // --------------------- Other functions ---------------------
+void entryMenu();
 void readFiles(int[], int[], int[]); 
+void chooseCase(); 
 int binarySearch(int[], int, int, int); // insertionSortV2 helper function
 int partition(int[], int, int); // quickSoertV1 helper function
+void insertionHelper(int arr[], int low, int high); // quickSortV2 helper function 
+int medianOfThree(int arr[], int low, int high); // quickSortV2 helper function
 void testAllAlgorithms(); // For analyzing the performance of all the algorithms in all cases
 void specificAlgorithm(); // In case specific algorithm is wanted
-void startChronoTimer(); 
-double stopChronoTimer(); 
+void startChronoTimer(); // for starting high-resolution clock
+double stopChronoTimer(); // for stopping high-resolution clock
+// Classic Bubble Sort
+void bubbleV1Random(); 
+void bubbleV1Sorted(); 
+void bubbleV1SortedBackwards(); 
+// Improved Bubble Sort
+void bubbleV2Random(); 
+void bubbleV2Sorted(); 
+void bubbleV2SortedBackwards(); 
+// Classic Selection Sort
+void selectionV1Random(); 
+void selectionV1Sorted(); 
+void selectionV1SortedBackwards();
+// Improved Selection Sort
+void selectionV2Random(); 
+void selectionV2Sorted(); 
+void selectionV2SortedBackwards();
+// Classic Insertion Sort
+void insertionV1Random(); 
+void insertionV1Sorted(); 
+void insertionV1SortedBackwards(); 
+// Improved Insertion Sort
+void insertionV2Random(); 
+void insertionV2Sorted(); 
+void insertionV2SortedBackwards(); 
+// Classic Quick Sort
+void quickV1Random(); 
+void quickV1Sorted(); 
+void quickV1SortedBackwards(); 
+// Improved Quick Sort
+void quickV2Random(); 
+void quickV2Sorted(); 
+void quickV2SortedBackwards();
 
 
 int main(){
@@ -89,7 +127,7 @@ double stopChronoTimer() {
 
 
 // --------------------- Implementations for the Sorting Algorithms ---------------------
-void bubbleSortV1(int arr[], const int size = arrSize){
+void bubbleSortV1(int arr[], const int size){
     int pass, temp; 
     for ( pass =1; pass < size; pass++ ){
         // moves the largest element to the end of the array in each pass, so we can ignore it in the next pass
@@ -105,7 +143,7 @@ void bubbleSortV1(int arr[], const int size = arrSize){
 } // end bubbleSortV1
 
 
-void bubbleSortV2(int arr[], const int size = arrSize){
+void bubbleSortV2(int arr[], const int size){
     int temp;
     bool sorted = false; // false when swaps occur
     for (int pass = 1; (pass < size) && !sorted; ++pass){
@@ -122,7 +160,7 @@ void bubbleSortV2(int arr[], const int size = arrSize){
 } // end bubbleSortV2
 
 
-void selectionSortV1(int arr[], const int size = arrSize){
+void selectionSortV1(int arr[], const int size){
     for (int last = size - 1; last >= 1; --last)
     {   // select largest item in the array
         int largestIndex = 0;
@@ -140,7 +178,7 @@ void selectionSortV1(int arr[], const int size = arrSize){
 } // end selectionSortV1
 
 
-void selectionSortV2(int arr[], const int size = arrSize) {
+void selectionSortV2(int arr[], const int size) {
     // Early termination
     if (size <= 1) return;
     // Checking if already sorted
@@ -184,7 +222,7 @@ void selectionSortV2(int arr[], const int size = arrSize) {
 }  // end selectionSortV2
 
 
-void insertionSortV1(int arr[], const int size = arrSize){
+void insertionSortV1(int arr[], const int size){
     int item, pass, insertIndex;
     for (pass = 1; pass < size; pass++)
     {
@@ -204,7 +242,7 @@ void insertionSortV1(int arr[], const int size = arrSize){
 int binarySearch(int arr[], int item, int low, int high) {
     while (low <= high)
     {
-        int mid = (low + high) / 2;
+        int mid = low + (high - low) / 2;
 
         if (arr[mid] == item)
             return mid + 1;
@@ -218,7 +256,7 @@ int binarySearch(int arr[], int item, int low, int high) {
 } // end binary search 
 
 
-void insertionSortV2(int arr[], const int size = arrSize) {
+void insertionSortV2(int arr[], const int size) {
     // Step 1: Sentinel optimization
     int minIndex = 0;
     for (int i = 1; i < size; i++)
@@ -251,43 +289,96 @@ void insertionSortV2(int arr[], const int size = arrSize) {
 
 
 int partition(int arr[], int first, int last) {
-    int pivot, temp;
-    int loop, cutPoint, bottom, top;
-    pivot = arr[first];
-    bottom = first; top = last;
-    loop = 1; // always TRUE
-    while (loop)
-    {
-        while (arr[top] > pivot)  // find smaller value than pivot from top
-            top--;
+    int pivot = arr[last];
+    int i = first - 1;
 
-        while (arr[bottom] < pivot)  // find larger value than pivot from bottom
-            bottom++;
+    for(int j = first; j < last; j++){
+        if(arr[j] < pivot){
+            i++;
+            swap(arr[i], arr[j]);
+        }
+    }
 
-        if (bottom < top)
-        {
-            // change pivot place
-            temp = arr[bottom];
-            arr[bottom] = arr[top];
-            arr[top] = temp;
-        }
-        else
-        {
-            loop = 0;        // loop false
-            cutPoint = top;
-        }
-    } // end while
-    return cutPoint;
+    swap(arr[i + 1], arr[last]);
+    return i + 1;
 } // end partition
 
 
 void quickSortV1(int arr[], int low, int high) {
-    int cut;
-    if (low < high)
-    {
-        cut = partition(arr, low, high);
-        quickSortV1(arr, low, cut);
-        quickSortV1(arr, cut + 1, high);
+    while(low < high){
+        int pi = partition(arr, low, high);
+
+        // Recurse on smaller part first (IMPORTANT)
+        if(pi - low < high - pi){
+            quickSortV1(arr, low, pi - 1);
+            low = pi + 1;
+        } else {
+            quickSortV1(arr, pi + 1, high);
+            high = pi - 1;
+        }
+    }
+}
+
+
+void insertionHelper(int arr[], int low, int high){
+    for(int i = low + 1; i <= high; i++){
+        int key = arr[i];
+        int j = i - 1;
+
+        while(j >= low && arr[j] > key){
+            arr[j + 1] = arr[j];
+            j--;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+
+int medianOfThree(int arr[], int low, int high){
+    int mid = low + (high - low) / 2;
+    if(arr[low] > arr[mid]) swap(arr[low], arr[mid]);
+    if(arr[low] > arr[high]) swap(arr[low], arr[high]);
+    if(arr[mid] > arr[high]) swap(arr[mid], arr[high]);
+    swap(arr[mid], arr[high]); // use median as pivot
+    return high;
+}
+
+
+// Improved Quick Sort (v2) with median-of-three pivot selection and insertion sort for small partitions
+void quickSortV2(int arr[], int low, int high){
+    while(low < high){
+
+        // Use insertion sort for small subarrays
+        if(high - low < 20){
+            insertionHelper(arr, low, high);
+            return;
+        }
+        // median-of-three pivot selection
+        medianOfThree(arr, low, high);
+        long long pivot = arr[high];
+        // 3-way partition
+        int lt = low, gt = high, i = low;
+        while(i <= gt){
+            if(arr[i] < pivot){
+                swap(arr[i], arr[lt]);
+                i++; lt++;
+            }
+            else if(arr[i] > pivot){
+                swap(arr[i], arr[gt]);
+                gt--;
+            }
+            else{
+                i++;
+            }
+        }
+        // Tail recursion optimization 
+        if(lt - low < high - gt){
+            quickSortV2(arr, low, lt - 1);
+            low = gt + 1;
+        } else {
+            quickSortV2(arr, gt + 1, high);
+            high = lt - 1;
+        }
     }
 }
 
@@ -295,21 +386,26 @@ void quickSortV1(int arr[], int low, int high) {
 // Enrty Menu
 void entryMenu() {
     int entryChoice; 
-    cout<<"Would you like to: \n"; 
-    cout <<"1. Test the performance of all the algorithms for all the cases at once" <<endl; 
-    cout <<"2. Choose a specific algorithm"<<endl; 
-    cin >> entryChoice; 
-    while (entryChoice != 1 && entryChoice != 2) {
-        cerr << "Invalid Choice!! Please try again: ";
-        cin >> entryChoice;
-    }
-    switch (entryChoice) {
-        case 1: 
-            testAllAlgorithms();
-            break;  
-        case 2: 
-            specificAlgorithm(); 
-            break; 
+    while(true) {
+        cout<<"Would you like to: \n"; 
+        cout <<"1. Test the performance of all the algorithms for all the cases at once" <<endl; 
+        cout <<"2. Choose a specific algorithm"<<endl; 
+        cout <<"3. Exit Program"<< endl; 
+        cin >> entryChoice; 
+        while (entryChoice != 1 && entryChoice != 2 && entryChoice != 3) {
+            cerr << "Invalid Choice!! Please try again: ";
+            cin >> entryChoice;
+        }
+        switch (entryChoice) {
+            case 1: 
+                testAllAlgorithms();
+                break;  
+            case 2: 
+                specificAlgorithm(); 
+                break; 
+            default: // Will be 3 anyway
+                return; 
+        }
     }
 }
 
@@ -317,6 +413,156 @@ void entryMenu() {
 void testAllAlgorithms() {
     // --------------------- Bubble Sort ---------------------
     cout << "1. Original Bubble Sort: " << endl; 
+    bubbleV1Random(); 
+    bubbleV1Sorted(); 
+    bubbleV1SortedBackwards(); 
+    cout << "2. Improved Bubble Sort: " <<endl; 
+    bubbleV2Random(); 
+    bubbleV2Sorted(); 
+    bubbleV2SortedBackwards(); 
+    // --------------------- Selection Sort ---------------------
+    cout << "3. Original Selection Sort:  " << endl; 
+    selectionV1Random(); 
+    selectionV1Sorted(); 
+    selectionV1SortedBackwards();
+    cout << "4. Improved Selection Sort:  " << endl; 
+    selectionV2Random(); 
+    selectionV2Sorted(); 
+    selectionV2SortedBackwards();
+    // --------------------- Insertion Sort ---------------------
+    cout << "5. Original Insertion Sort:  " << endl; 
+    insertionV1Random(); 
+    insertionV1Sorted();
+    insertionV1SortedBackwards(); 
+    cout << "6. Improved Insertion Sort:  " << endl; 
+    insertionV2Random(); 
+    insertionV2Sorted();
+    insertionV2SortedBackwards();
+    // --------------------- Quick Sort ---------------------
+    cout << "7. Original Quick Sort:  " << endl; 
+    quickV1Random(); 
+    quickV1Sorted();
+    quickV1SortedBackwards();
+    cout << "8. Improved Quick Sort:  " << endl; 
+    quickV2Random(); 
+    quickV2Sorted();
+    quickV2SortedBackwards();
+}
+
+
+void chooseCase() {
+    cout << "Which case would you like to test? " << endl; 
+    cout << "1. Random"<<endl<<"2. Sorted"<<endl<<"3. Sorted Backwards"<<endl;
+    cin >> caseChoice; 
+    while (caseChoice<1 || caseChoice>3){
+        cout << "Invalid Choice!! Try Again"; 
+        cin >> caseChoice; 
+    }
+}
+
+
+void specificAlgorithm() {
+    int algorithmChoice; 
+    cout << "Which algorithm would you like to test? "<<endl; 
+    cout << "1. Classic Bubble Sort"<<endl; 
+    cout << "2. Improved Bubble Sort"<<endl; 
+    cout << "3. Classic Selection Sort"<<endl; 
+    cout << "4. Improved Selection Sort"<<endl; 
+    cout << "5. Classic Insertion Sort"<<endl; 
+    cout << "6. Improved Insertion Sort"<<endl; 
+    cout << "7. Classic Quick Sort"<<endl; 
+    cout << "8. Improved Quick Sort"<<endl; 
+    cin>>algorithmChoice; 
+    while (algorithmChoice < 1 || algorithmChoice > 8){
+        cout << "Invalid choice!! Try Again: "; 
+        cin >> algorithmChoice; 
+    }
+    switch (algorithmChoice) {
+        case 1: 
+            chooseCase(); 
+            switch(caseChoice) {
+                case 1: bubbleV1Random(); 
+                break;
+                case 2: bubbleV1Sorted(); 
+                break;
+                case 3: bubbleV1SortedBackwards(); 
+            }
+            break; 
+        case 2: 
+            chooseCase(); 
+            switch(caseChoice) {
+                case 1: bubbleV2Random(); 
+                break;
+                case 2: bubbleV2Sorted(); 
+                break;
+                case 3: bubbleV2SortedBackwards(); 
+            }
+            break; 
+        case 3: 
+            chooseCase(); 
+            switch(caseChoice) {
+                case 1: selectionV1Random(); 
+                break;
+                case 2: selectionV1Sorted(); 
+                break;
+                case 3: selectionV1SortedBackwards(); 
+            }
+            break; 
+        case 4: 
+            chooseCase(); 
+            switch(caseChoice) {
+                case 1: selectionV2Random(); 
+                break;
+                case 2: selectionV2Sorted(); 
+                break;
+                case 3: selectionV2SortedBackwards(); 
+            }
+            break; 
+        case 5: 
+            chooseCase(); 
+            switch(caseChoice) {
+                case 1: insertionV1Random(); 
+                break;
+                case 2: insertionV1Sorted(); 
+                break;
+                case 3: insertionV1SortedBackwards(); 
+            }
+            break;
+        case 6:
+            chooseCase(); 
+            switch(caseChoice) {
+                case 1: insertionV2Random(); 
+                break;
+                case 2: insertionV2Sorted(); 
+                break;
+                case 3: insertionV2SortedBackwards(); 
+            }
+            break; 
+        case 7: 
+            chooseCase(); 
+            switch(caseChoice) {
+                case 1: quickV1Random(); 
+                break;
+                case 2: quickV1Sorted(); 
+                break;
+                case 3: quickV1SortedBackwards(); 
+            }
+            break;
+        case 8: 
+            chooseCase(); 
+            switch(caseChoice) {
+                case 1: quickV2Random();
+                break; 
+                case 2: quickV2Sorted(); 
+                break;
+                case 3: quickV2SortedBackwards(); 
+            }
+    }
+}
+
+
+// --------------------- The functions of all the cases for all the algorithms ---------------------
+void bubbleV1Random () {
     cout << "\tRandom List: " << endl;
     for (int i = 1; i<4; i++) {
         cout << "\t\tTrial "<< i <<": "<<endl; 
@@ -326,10 +572,12 @@ void testAllAlgorithms() {
         bubbleSortV1(tempArr); 
         cEnd = clock();
         chronoTime = stopChronoTimer(); 
-        clockTime = double(cEnd - cStart); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
         cout<<"\t\tClock Time: " << clockTime << endl; 
-        cout <<"\t\tChrono Time: " << chronoTime; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl;
     } 
+}
+void bubbleV1Sorted() {
     cout << "\tSorted List: " << endl;
     for (int i = 1; i<4; i++) {
         cout << "\t\tTrial "<< i <<": "<<endl; 
@@ -339,10 +587,12 @@ void testAllAlgorithms() {
         bubbleSortV1(tempArr); 
         cEnd = clock();
         chronoTime = stopChronoTimer(); 
-        clockTime = double(cEnd - cStart); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
         cout<<"\t\tClock Time: " << clockTime << endl; 
-        cout <<"\t\tChrono Time: " << chronoTime; 
+        cout <<"\t\tChrono Time: " << chronoTime<< endl; 
     } 
+}
+void bubbleV1SortedBackwards() {
     cout << "\tSorted Backwards List: " << endl;
     for (int i = 1; i<4; i++) {
         cout << "\t\tTrial "<< i <<": "<<endl; 
@@ -352,9 +602,337 @@ void testAllAlgorithms() {
         bubbleSortV1(tempArr); 
         cEnd = clock();
         chronoTime = stopChronoTimer(); 
-        clockTime = double(cEnd - cStart); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
         cout<<"\t\tClock Time: " << clockTime << endl; 
-        cout <<"\t\tChrono Time: " << chronoTime; 
-    } 
+        cout <<"\t\tChrono Time: " << chronoTime<< endl; 
+    }
+}
 
+
+void bubbleV2Random () {
+    cout << "\tRandom List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(randomArr, randomArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        bubbleSortV2(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    } 
+}
+void bubbleV2Sorted() {
+    cout << "\tSorted List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedArr, sortedArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        bubbleSortV2(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    } 
+}
+void bubbleV2SortedBackwards() {
+    cout << "\tSorted Backwards List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedBackwardsArr, sortedBackwardsArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        bubbleSortV2(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+}
+
+
+void selectionV1Random(){
+    cout << "\tRandom List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(randomArr, randomArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        selectionSortV1(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    } 
+}
+void selectionV1Sorted(){
+    cout << "\tSorted List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedArr, sortedArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        selectionSortV1(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    } 
+}
+void selectionV1SortedBackwards(){
+    cout << "\tSorted Backwards List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedBackwardsArr, sortedBackwardsArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        selectionSortV1(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+}
+
+
+void selectionV2Random(){
+    cout << "\tRandom List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(randomArr, randomArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        selectionSortV2(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    } 
+}
+void selectionV2Sorted(){
+    cout << "\tSorted List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedArr, sortedArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        selectionSortV2(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+}
+void selectionV2SortedBackwards(){
+    cout << "\tSorted Backwards List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedBackwardsArr, sortedBackwardsArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        selectionSortV2(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+}
+
+
+void insertionV1Random(){
+    cout << "\tRandom List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(randomArr, randomArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        insertionSortV1(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+}
+void insertionV1Sorted(){
+    cout << "\tSorted List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedArr, sortedArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        insertionSortV1(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+} 
+void insertionV1SortedBackwards(){
+    cout << "\tSorted Backwards List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedBackwardsArr, sortedBackwardsArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        insertionSortV1(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+}
+
+
+void insertionV2Random(){
+    cout << "\tRandom List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(randomArr, randomArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        insertionSortV2(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+}
+void insertionV2Sorted(){
+    cout << "\tSorted List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedArr, sortedArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        insertionSortV2(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+} 
+void insertionV2SortedBackwards(){
+    cout << "\tSorted Backwards List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedBackwardsArr, sortedBackwardsArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        insertionSortV2(tempArr); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+}
+
+
+void quickV1Random(){
+    cout << "\tRandom List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(randomArr, randomArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        quickSortV1(tempArr, 0, arrSize - 1); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+}
+void quickV1Sorted(){
+    cout << "\tSorted List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedArr, sortedArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        quickSortV1(tempArr, 0, arrSize - 1); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+}
+void quickV1SortedBackwards(){
+    cout << "\tSorted Backwards List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedBackwardsArr, sortedBackwardsArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        quickSortV1(tempArr, 0, arrSize - 1); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+}
+
+
+void quickV2Random(){
+    cout << "\tRandom List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(randomArr, randomArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        quickSortV2(tempArr, 0, arrSize - 1); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+}
+void quickV2Sorted(){
+    cout << "\tSorted List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedArr, sortedArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        quickSortV2(tempArr, 0, arrSize - 1); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
+}
+void quickV2SortedBackwards(){
+    cout << "\tSorted Backwards List: " << endl;
+    for (int i = 1; i<4; i++) {
+        cout << "\t\tTrial "<< i <<": "<<endl; 
+        copy(sortedBackwardsArr, sortedBackwardsArr + arrSize, tempArr);
+        cStart = clock();
+        startChronoTimer(); 
+        quickSortV2(tempArr, 0, arrSize - 1); 
+        cEnd = clock();
+        chronoTime = stopChronoTimer(); 
+        clockTime = double(cEnd - cStart) / CLOCKS_PER_SEC; 
+        cout<<"\t\tClock Time: " << clockTime << endl; 
+        cout <<"\t\tChrono Time: " << chronoTime << endl; 
+    }
 }
